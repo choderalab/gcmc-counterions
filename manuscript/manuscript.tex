@@ -1,0 +1,243 @@
+% PRL look and style (easy on the eyes)
+\RequirePackage[hyphens]{url}
+\documentclass[aps,pre,twocolumn,nofootinbib,superscriptaddress,linenumbers,11point]{revtex4-1}
+% Two-column style (for submission/review/editing)
+%\documentclass[aps,prl,preprint,nofootinbib,superscriptaddress,linenumbers]{revtex4-1}
+
+%\usepackage{palatino}
+
+% Change to a sans serif font.
+\usepackage{sourcesanspro}
+\renewcommand*\familydefault{\sfdefault} %% Only if the base font of the document is to be sans serif
+\usepackage[T1]{fontenc}
+%\usepackage[font=sf,justification=justified]{caption}
+\usepackage[font=sf]{floatrow}
+
+% Rework captions to use sans serif font.
+\makeatletter
+\renewcommand\@make@capt@title[2]{%
+ \@ifx@empty\float@link{\@firstofone}{\expandafter\href\expandafter{\float@link}}%
+  {\textbf{#1}}\sf\@caption@fignum@sep#2\quad
+}%
+\makeatother
+
+\usepackage{listings} % For code examples
+\usepackage[usenames,dvipsnames,svgnames,table]{xcolor}
+
+\usepackage{minted}
+
+\usepackage{amsmath}
+\usepackage{amssymb}
+\usepackage{graphicx}
+%\usepackage[mathbf,mathcal]{euler}
+%\usepackage{citesort}
+\usepackage{dcolumn}
+\usepackage{boxedminipage}
+\usepackage{verbatim}
+\usepackage[colorlinks=true,citecolor=blue,linkcolor=blue]{hyperref}
+
+\usepackage{subfigure}  % use for side-by-side figures
+
+% The figures are in a figures/ subdirectory.
+\graphicspath{{figures/}}
+
+% italicized boldface for math (e.g. vectors)
+\newcommand{\bfv}[1]{{\mbox{\boldmath{$#1$}}}}
+% non-italicized boldface for math (e.g. matrices)
+\newcommand{\bfm}[1]{{\bf #1}}          
+
+%\newcommand{\bfm}[1]{{\mbox{\boldmath{$#1$}}}}
+%\newcommand{\bfm}[1]{{\bf #1}}
+%\newcommand{\expect}[1]{\left \langle #1 \right \rangle}                % <.> for denoting expectations over realizations of an experiment or thermal averages
+
+% Define some useful commands we will use repeatedly.
+\newcommand{\T}{\mathrm{T}}                                % T used in matrix transpose
+\newcommand{\tauarrow}{\stackrel{\tau}{\rightarrow}}       % the symbol tau over a right arrow
+\newcommand{\expect}[1]{\langle #1 \rangle}                % <.> for denoting expectations over realizations of an experiment or thermal averages
+\newcommand{\estimator}[1]{\hat{#1}}                       % estimator for some quantity from a finite dataset.
+\newcommand{\code}[1]{{\tt #1}}
+
+% vectors
+\newcommand{\x}{\bfv{x}}
+\newcommand{\y}{\bfv{y}}
+\newcommand{\f}{\bfv{f}}
+
+\newcommand{\bfc}{\bfm{c}}
+\newcommand{\hatf}{\hat{f}}
+
+%\newcommand{\bTheta}{\bfm{\Theta}}
+%\newcommand{\btheta}{\bfm{\theta}}
+%\newcommand{\bhatf}{\bfm{\hat{f}}}
+%\newcommand{\Cov}[1] {\mathrm{cov}\left( #1 \right)}
+%\newcommand{\Ept}[1] {{\mathrm E}\left[ #1 \right]}
+%\newcommand{\Eptk}[2] {{\mathrm E}\left[ #2 \,|\, #1\right]}
+%\newcommand{\T}{\mathrm{T}}                                % T used in matrix transpose
+%\newcommand{\conc}[1] {\left[ \mathrm{#1} \right]}
+
+\DeclareMathOperator*{\argmin}{argmin}
+\DeclareMathOperator*{\argmax}{argmax}
+\newcommand*{\argminl}{\argmin\limits}
+\newcommand*{\argmaxl}{\argmax\limits}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% DOCUMENT
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\begin{document}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% TITLE
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\title{Biomolecular simulations at constant macroscopic counterion concentration}
+
+\author{John D. Chodera}
+ \thanks{Corresponding author}
+ \email{random@choderalab.org}
+ \affiliation{Computational Biology Program, Sloan Kettering Institute, Memorial Sloan Kettering Cancer Center, New York, NY 10065}
+
+\date{\today}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% ABSTRACT
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\begin{abstract}
+
+While biochemical and biophysical experiments are generally performed at a fixed macroscopic salt concentration (e.g.~50 mM NaCl), biomolecular simulations are almost universally performed with a fixed \emph{microscopic} concentration of counterions that is highly unrepresentative of the actual average local concentration and fluctuations of counterion species surrounding often-charged biomolecules.
+Here, we describe a simple approach to faithfully simulate the correct equilibrium distribution of counterion species in an equilibrium molecular dynamics simulation by incorporating Monte Carlo moves in which counterions are inserted and deleted.
+To ensure high acceptance rates, we utilize nonequilibrium candidate Monte Carlo (NCMC) moves for couterion insertion and deletion, and self-adjusted mixture sampling (SAMS) is used to rapidly compute the reference chemical potential for the desired macroscopic counterion concentration.
+We illustrate this approach on a few biomolecules of typical interest to biomolecular simulations, including a small protein (DHFR), an activated kinase (phosphorylated Abl), and a nucleic acid (DNA).
+
+% KEYWORDS
+\emph{Keywords: biomolecular simulation; molecular dynamics; counterion concentration; chemical potential; semigrand canonical ensemble; self-adjusted mixture sampling}
+
+\end{abstract}
+
+\maketitle
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% FIGURE: ONE-COLUMN
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+%\begin{figure}[tbp]
+%\resizebox{0.9\textwidth}{!}{\includegraphics{toc-graphic.pdf}}
+%\caption{\label{figure:example} {\bf Example figure.} 
+%This is an example figure.
+%Shaded regions denote 95\% confidence intervals.
+%}
+%\end{figure}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% INTRODUCTION
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\section*{Introduction}
+\label{section:introduction}
+
+Wolf chartreuse beard, paleo bushwick locavore tumblr selvage health goth narwhal post-ironic meggings cronut DIY etsy. 
+Tote bag viral craft beer migas, brooklyn keffiyeh shabby chic wayfarers godard scenester affogato pabst. 
+Humblebrag chartreuse schlitz, post-ironic wolf ethical narwhal salvia everyday carry gastropub venmo kale chips. You probably haven't heard of them cornhole tilde readymade mixtape irony. 
+Sriracha occupy yuccie, green juice roof party fap tumblr hammock mumblecore ramps pabst. Artisan listicle truffaut kogi, shabby chic kombucha distillery etsy cronut +1 pabst mustache VHS vinyl green juice. 
+Before they sold out brooklyn yuccie, gluten-free sriracha lumbersexual four loko kombucha semiotics letterpress biodiesel kale chips art party normcore slow-carb.
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% INTRODUCTION
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\section*{Methods}
+\label{section:methods}
+
+\subsection*{Semigrand canonical ensemble}
+
+Consider a system in the $\mu$PT ensemble, where the number of water molecules is fixed but the number of \emph{counterions} is allowed to change
+\begin{eqnarray}
+\pi(x | \mu_\mathrm{salt}, \beta, p, N) &\equiv& Z(\mu, \beta, p, N)^{-1} \, q(x | \mu, \beta, p, N) \\
+q(x | \mu, \beta, p, N) &\equiv& e^{ - \beta \left[ U(x) + p V(x) + \mu_\mathrm{salt} N_\mathrm{salt}(x) \right] } \label{equation:semigrand-canonical-ensemble}
+\end{eqnarray}
+Here, $x$ denotes all dynamical variables of the simulation, which includes the configuration of all particles in the system, the \emph{number} of salt particles, and the instantaneous box dimensions.
+$U(x)$ denotes the instantaneous potential energy, $V(x)$ the instantaneous box volume, and $N_\mathrm{salt}(x)$ the instantaneous number of salt molecules in the system.
+The thermodynamic parameters that define the equilibrium ensemble are the inverse temperature $\beta \equiv (k_B T)^{-1}$, the pressure $p$, and the number of solvent molecules $N$.
+$\mu_\mathrm{salt}$ denotes the chemical potential of the neutral salt species.
+
+We envision a system that is in equilibrium with a much larger bath of macroscopic salt concentration $c_0$, but where pairs of salt molecules are allowed to exchange with solvent molecules through a permeable membrane to alter the instantaneous concentration of salt molecules within the simulation volume we are considering.
+For example, we may consider an experiment that takes place inside a test tube with a macroscopic concentration $c_0$ of 50 mM NaCl.
+
+\subsection*{Simulating from the equilibrium distribution}
+
+In order to sample from the equilibrium ensemble given in Eq.~\label{equation:semigrand-canonical-ensemble}, we utilize an \emph{expanded ensemble} simulation~\cite{lyubartsev:1992a} in which we alternate between sampling the configuration at fixed counterion concentration and sampling a new counterion concentration.
+Because we are simulating in an explicit solvent system where solvent polarization around ions means that instantaneous withdrawal of an ion would lead to high rejection rates, we utilize the nonequilibrium candidate Monte Carlo (NCMC) scheme~\cite{ncmc} to greatly enhance Monte Carlo acceptance rates when ions are inserted or deleted.
+
+To simplify the simulation procedure and avoid the need for fully transdimensional simulations where new particle coordinates are created or destroyed, we choose to transform solvent molecules into ions and vice-versa.
+This approach is straightforward when the solvent is water (as most water models---such as TIP3P~\cite{tip3p}---have a single Lennard-Jones site) and only monovalent counterions are used (such as NaCl molecules), this approach is more complex when multisite ion models are used (such as multisite divalent ion models~\cite{multisite-ions} or molecular salt species).
+In those cases, a number of noninteracting dummy salt molecules may be introduced into the system at the beginning of the simulation to avoid the need to dynamically create or destroy new degrees of freedom.
+
+The simulation proceeds as follows:
+\begin{itemize}
+  \item {\bf Propagate the simulation at fixed counterion number.}
+  \begin{eqnarray}
+  x^{(n+1)} &\sim& \pi(x | x^{(n)}, N_\mathrm{salt}^{(n)})  \\
+  N_\mathrm{salt}^{(n+1)} &\sim& \pi(N_\mathrm{salt} | x^{(n+1)})   
+  \end{eqnarray}
+\end{itemize}
+
+\subsection*{Calibrating the chemical potential}
+
+Consider an experiment that takes place inside a test tube with a macroscopic concentration $c_0$ of 50 mM NaCl.
+What does this mean in terms of a chemical potential $\mu$ appearing in Eq.~\ref{equation:semigrand-canonical-ensemble}?
+If our simulation volume consisted of a very large solvent box that does not contain any biomolecules or other impurities, a given choice of chemical potential $\mu_\mathrm{salt}$ will have a one-to-one correspondence with a macroscopic salt concentration:
+\begin{eqnarray}
+c(\mu, \beta, p, N) &\equiv& \frac{\left< N_\mathrm{salt} \right>_{\mu, \beta, p, N} / N_A}{\left< V \right>_{\mu, \beta, p, N}}
+\end{eqnarray}
+where $N_A$ is Avogadro's number, and the resulting concentration $c$ is a molar concentration if volume $V$ is expressed in liters.
+This concentration $c(\mu, \beta, p, N)$ obviously depends on the thermodynamic parameters $\beta, p, N$ in addition to the chemical potential $\mu$, but for sufficiently large $N$, it will be independent of $N$.
+{\color{red}[JDC: Correct equation to be molarity instead of number density.]}
+
+For a given set of simulation conditions $(\beta, p, N)$ and a given water and ion model, we simply need to identify the choice of $\mu^*$ that yields the desired macroscopic concentration $c_0$:
+\begin{eqnarray}
+c_0 &=& c(\mu^*, \beta, p, N)
+\end{eqnarray}
+To do this, we make use of a calibration simulation containing only $N$ solvent molecules (with no biomolecule) at the same inverse temperature $\beta$ and pressure $p$, allowing the number of salt molecules $N_\mathrm{salt}$ to fluctuate dynamically.
+
+While there are many ways to determine $\mu^*$, here, we utilize a \emph{self adjusted mixture sampling} (SAMS) simulation~\cite{sams}.
+In a SAMS simulation, we allow the number $n$ of neutral salt molecules to fluctuate dynamically and the relative reduced free energy $f_n \equiv - \ln Z_n$ of each is computed through a recursion strategy in which the $f_n$ are dynamically evolved during the simulation.
+{\color{red}[JDC: More details on SAMS.]}
+\begin{eqnarray}
+Z_n &\equiv& \int dx \, e^{-\beta [U_n(x) + p V(x)]}
+\end{eqnarray}
+where $U_n(x)$ denotes there are exactly $n$ salt pairs in the system.
+
+Once the relative reduced free energies $f_n$ have have been determined, we can compute the chemical potential $\mu^*$ by recognizing that
+\begin{eqnarray}
+\left< n \right>_{\mu, \beta, p, N} &=& \sum_{n = 0}^\infty n \, \int dx \, e^{-\beta [ U_n(x) + p V((x) + \mu n ]} \\
+&=&  \sum_{n = 0}^\infty n \, e^{\beta \mu n} \int dx \, e^{-\beta [ U_n(x) + p V((x) ]} \\
+&=&  \sum_{n = 0}^\infty n \, e^{\beta \mu n} e^{-f_n} \\
+&=&  \sum_{n = 0}^\infty n \, e^{\beta \mu n -f_n}
+\end{eqnarray}
+and write $c(\mu, \beta, p, N)$ in terms of the $\{f_n\}$ and the associated average volumes $V_n \equiv \left< V \right>_{\beta, p, N, n}$
+\begin{eqnarray}
+c(\mu, \beta, p, N) &=& \left< \frac{n}{N_A} \right>_{\mu, \beta, p, N} / \left< V \right>_{\mu, \beta, p, N} \\
+&=& \frac{\sum_{n = 0}^\infty \frac{n}{N_A} \, e^{\beta \mu n -f_n}}{\sum_{n = 0}^\infty V_n \, e^{\beta \mu n -f_n}}
+\end{eqnarray}
+which allows us to solve for $\mu^*$:
+\begin{eqnarray}
+c_0 &=& \frac{\left< \frac{n}{N_A} \right>_{\mu, \beta, p, N}}{\left< V \right>_{\mu, \beta, p, N}} \\
+&=& \frac{\sum_{n = 0}^\infty \frac{n}{N_A} \, e^{\beta \mu n -f_n}}{\sum_{n = 0}^\infty V_n \, e^{\beta \mu n -f_n}}
+\end{eqnarray}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% ACKNOWLEDGMENTS
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\section*{Acknowledgments}
+
+JDC acknowledges a Louis V.~Gerstner Young Investigator Award, NIH core grant P30-CA008748, and the Sloan Kettering Institute for funding during the course of this work.
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% BIBLIOGRAPHY
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\bibliographystyle{prsty} 
+\bibliography{manuscript}
+
+\end{document}
