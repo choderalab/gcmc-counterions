@@ -3,8 +3,8 @@
   <Type name="tip3p-O" class="OW" element="O" mass="15.99943"/>
   <Type name="tip3p-H" class="HW" element="H" mass="1.007947"/>
   <Type name="HD" class="HD" element="H" mass="1.007947"/>
-  <Type name="1954" class="IM" element="Cl" mass="35.4532"/>
-  <Type name="1959" class="IP" element="Na" mass="22.989769282"/>
+  <Type name="Cl-" class="IM" element="Cl" mass="35.4532"/>
+  <Type name="Na+" class="IP" element="Na" mass="22.989769282"/>
  </AtomTypes>
  <Residues>
   <Residue name="HOH">
@@ -15,14 +15,14 @@
    <Bond atomName1="O" atomName2="H2"/>
   </Residue>
   <Residue name="Na+">
-   <Atom name="Na+" type="1959"/>
+   <Atom name="Na+" type="Na+"/>
    <Atom name="H1" type="HD"/>
    <Atom name="H2" type="HD"/>
    <Bond atomName1="Na+" atomName2="H1"/>
    <Bond atomName1="Na+" atomName2="H2"/>
   </Residue>
   <Residue name="Cl-">
-   <Atom name="Cl-" type="1954"/>
+   <Atom name="Cl-" type="Cl-"/>
    <Atom name="H1" type="HD"/>
    <Atom name="H2" type="HD"/>
    <Bond atomName1="Cl-" atomName2="H1"/>
@@ -43,7 +43,13 @@
   <Atom type="tip3p-O" charge="-0.834" sigma="0.31507524065751241" epsilon="0.635968"/>
   <Atom type="tip3p-H" charge="0.417" sigma="1" epsilon="0"/>
   <Atom type="HD" charge="0.000" sigma="1" epsilon="0"/>
-  <Atom type="1954" charge="-1.0" sigma="0.440103966761" epsilon="0.4184"/>
-  <Atom type="1959" charge="1.0" sigma="0.332839761097" epsilon="0.01158968"/>
+  <!-- Chen and Pappu parameters -->
+  <!--
+  <Atom type="Cl-" charge="-1.0" sigma="0.441724" epsilon="0.492833"/>
+  <Atom type="Na+" charge="1.0" sigma="0.333045" epsilon="0.0115980"/>
+  -->
+  <!-- Joung and Cheatham parameters -->
+  <Atom type="Cl-" charge="-1.0" sigma="0.4477657" epsilon="0.148912744"/>
+  <Atom type="Na+" charge="1.0" sigma="0.2439281" epsilon="0.3658460312"/>
  </NonbondedForce>
 </ForceField>
