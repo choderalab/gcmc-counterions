@@ -267,14 +267,14 @@ topology.addBond(a1, a2)
 topology.addBond(a1, a3)
 cation_residue = topology.addResidue('NA', chain)
 a1 = topology.addAtom('Na', element.sodium, cation_residue)
-a2 = topology.addAtom('Du', element.hydrogen, cation_residue)
-a3 = topology.addAtom('Du', element.hydrogen, cation_residue)
+a2 = topology.addAtom('Du1', element.hydrogen, cation_residue)
+a3 = topology.addAtom('Du2', element.hydrogen, cation_residue)
 topology.addBond(a1, a2)
 topology.addBond(a1, a3)
 anion_residue = topology.addResidue('CL', chain)
 a1 = topology.addAtom('Cl', element.chlorine, anion_residue)
-a2 = topology.addAtom('Du', element.hydrogen, anion_residue)
-a3 = topology.addAtom('Du', element.hydrogen, anion_residue)
+a2 = topology.addAtom('Du1', element.hydrogen, anion_residue)
+a3 = topology.addAtom('Du2', element.hydrogen, anion_residue)
 topology.addBond(a1, a2)
 topology.addBond(a1, a3)
 reference_topology = topology
@@ -291,8 +291,8 @@ temperature = 300.0 * unit.kelvin
 pressure = 1.0 * unit.atmospheres
 collision_rate = 5.0 / unit.picoseconds
 timestep = 2.0 * unit.femtoseconds
-chemical_potential = 80.0 * unit.kilocalories_per_mole # chemical potential
-nsteps = 2500 # number of timesteps per iteration
+chemical_potential = 0.0 * unit.kilocalories_per_mole # chemical potential
+nsteps = 5 # number of timesteps per iteration
 niterations = 500 # number of iterations
 mctrials = 10 # number of Monte Carlo trials per iteration
 nsalt = 0 # current number of salt pairs
