@@ -230,7 +230,6 @@ def propose_topology(topology, mode, water_residue, anion_residue, cation_residu
     nwater = len(water_residues)
     ncation = len(cation_residues)
     nanion = len(anion_residues)
-    print nwater, ncation, nanion
     # Copy residue function.
     def copy_residue(dest, src):
         dest.name = src.name
@@ -244,15 +243,17 @@ def propose_topology(topology, mode, water_residue, anion_residue, cation_residu
         replace_residues = random.choice(water_residues, size=2, replace=False)
         copy_residue(replace_residues[0], cation_residue)
         copy_residue(replace_residues[1], anion_residue)
-        logP_proposal = np.log( ((1.0/(ncation+1))*(1.0/(nanion+1))) / ((1.0/nwater)*(1.0/(nwater-1))) )
+        #logP_proposal = np.log( ((1.0/(ncation+1))*(1.0/(nanion+1))) / ((1.0/nwater)*(1.0/(nwater-1))) )
+        logP_proposal = np.log( nwater*(nwater-1)/(nanion+1)/(ncation+1) )
     if mode == 'delete-salt':
         # Convert cation and anion to water residues.
         replace_residues = [ random.choice(cation_residues), random.choice(anion_residues) ]
         copy_residue(replace_residues[0], water_residue)
         copy_residue(replace_residues[1], water_residue)
-        logP_proposal = np.log( ((1.0/(nwater+1))*(1.0/(nwater+2))) / ((1.0/(ncation))*(1.0/(nanion))) )   # Fixed, with possibly correct MC move.
+        #logP_proposal = np.log( ((1.0/(nwater+1))*(1.0/(nwater+2))) / ((1.0/(ncation))*(1.0/(nanion))) )   # Fixed, with possibly correct MC move.
+        logP_proposal = np.log( (nwater+1)*(nwater+2)/ncation/nanion )
 
-    return new_topology
+    return new_topology, logP_proposal
 
 # Create residue templates.
 from simtk.openmm.app import element
@@ -340,7 +341,7 @@ for iteration in range(niterations):
         print('  mc trial %5d / %5d' % (trial, mctrials))
         # Compute initial reduced potential.
         u_initial = compute_reduced_potential(system, positions, nsalt, temperature, pressure, chemical_potential)
-        # Select whether we will add or delete salt pair.
+        # Select whether we will add or delete salt pair. Currently missing correction for attempting more salt insertions than based on proportion alone.
         if (nsalt==0) or ((nsalt < nmolecules) and (np.random.random() < 0.5)):
             mode = 'add-salt'
             nsalt_proposed = nsalt + 1
@@ -349,13 +350,13 @@ for iteration in range(niterations):
             nsalt_proposed = nsalt - 1
 
         # Propose the modified topology and modify the system parameters in the context.
-        proposed_topology = propose_topology(topology, mode, water_residue, anion_residue, cation_residue)
+        proposed_topology,logP_proposal = propose_topology(topology, mode, water_residue, anion_residue, cation_residue)
         proposed_system = forcefield.createSystem(proposed_topology, **forcefield_options)
         # Compute final reduce potential.
         u_final = compute_reduced_potential(proposed_system, positions, nsalt_proposed, temperature, pressure, chemical_potential)
         # Accept or reject.
         accept = False
-        logP_accept = - (u_final - u_initial)
+        logP_accept = - (u_final - u_initial) + logP_proposal
         if (logP_accept > 0) or (np.random.random() < np.exp(logP_accept)):
             accept = True
         if accept:
