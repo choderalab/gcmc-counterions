@@ -230,7 +230,7 @@ def propose_topology(topology, mode, water_residue, anion_residue, cation_residu
     nwater = len(water_residues)
     ncation = len(cation_residues)
     nanion = len(anion_residues)
-
+    print nwater, ncation, nanion
     # Copy residue function.
     def copy_residue(dest, src):
         dest.name = src.name
@@ -250,9 +250,9 @@ def propose_topology(topology, mode, water_residue, anion_residue, cation_residu
         replace_residues = [ random.choice(cation_residues), random.choice(anion_residues) ]
         copy_residue(replace_residues[0], water_residue)
         copy_residue(replace_residues[1], water_residue)
-        logP_proposal = np.log( ((1.0/nwater)*(1.0/(nwater-1))) / ((1.0/(ncation-1))*(1.0/(nanion-1))) )
+        logP_proposal = np.log( ((1.0/(nwater+1))*(1.0/(nwater+2))) / ((1.0/(ncation))*(1.0/(nanion))) )   # Fixed, with possibly correct MC move.
 
-    return [new_topology, logP_proposal]
+    return new_topology
 
 # Create residue templates.
 from simtk.openmm.app import element
@@ -293,7 +293,7 @@ collision_rate = 5.0 / unit.picoseconds
 timestep = 2.0 * unit.femtoseconds
 chemical_potential = 0.0 * unit.kilocalories_per_mole # chemical potential
 nsteps = 5 # number of timesteps per iteration
-niterations = 500 # number of iterations
+niterations = 50 # number of iterations
 mctrials = 10 # number of Monte Carlo trials per iteration
 nsalt = 0 # current number of salt pairs
 tol = 1e-6 # constraint tolerance
@@ -349,13 +349,13 @@ for iteration in range(niterations):
             nsalt_proposed = nsalt - 1
 
         # Propose the modified topology and modify the system parameters in the context.
-        [proposed_topology, logP_proposal] = propose_topology(topology, mode, water_residue, anion_residue, cation_residue)
+        proposed_topology = propose_topology(topology, mode, water_residue, anion_residue, cation_residue)
         proposed_system = forcefield.createSystem(proposed_topology, **forcefield_options)
         # Compute final reduce potential.
         u_final = compute_reduced_potential(proposed_system, positions, nsalt_proposed, temperature, pressure, chemical_potential)
         # Accept or reject.
         accept = False
-        logP_accept = - (u_final - u_initial) + logP_proposal
+        logP_accept = - (u_final - u_initial)
         if (logP_accept > 0) or (np.random.random() < np.exp(logP_accept)):
             accept = True
         if accept:
@@ -363,9 +363,10 @@ for iteration in range(niterations):
             # Accept proposed topology.
             topology = proposed_topology
             system = proposed_system
+            nsalt = nsalt_proposed
         else:
             nrejected += 1
-
+    print "Number of Na Cl pairs = %i" % nsalt
     # Write PDB frame with current topology and positions.
     PDBFile.writeModel(topology, positions, file=pdbfile, modelIndex=iteration+1)
 
