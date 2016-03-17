@@ -82,64 +82,75 @@ where $n_w^a$ denotes the number of water molecules in compartment $a$, $n_w^b$ 
 \pi(\mathbf{x}_a,\mathbf{x}_b,\mathbf{n}|\beta,V_a,V_b) \propto  \prod_{i,j} \frac{V_i^{n_j^i}}{n^i_j! \, \Lambda^{3n^i_j}}\, e^{-u(\mathbf{x}_a,\mathbf{x}_b)}
 \end{align}
 
-where $i \in \{a,b\}$, $j \in \{w, Na, Cl\}$, and $u(\mathbf{x}_a,\mathbf{x}_b)$ is the dimentionless interaction energy.
+where $i \in \{a,b\}$, $j \in \{w, Na, Cl\}$, and $u(\mathbf{x}_a,\mathbf{x}_b)$ is the dimensionless interaction energy.
 
 \section{Acceptance test derivation}
-To avoid the creation and annihaltion of particles and to keep the simulated region (compartment $a$) neutral, exchange moves involve simulataneously swapping two water molecules for Na and Cl. The acceptance probability will be derived by evaluating the acceptance probability for each stage of the swap individually, then amalgamating them all in a single move and acceptance probability. 
+To avoid the creation and annihilation of particles and to keep the simulated region (compartment $a$) neutral, exchange moves involve simultaneously swapping two water molecules for Na and Cl. The acceptance probability will be derived by evaluating the acceptance probability for each stage of the swap individually, then amalgamating them all in a single move and acceptance probability. 
 
-For sampling exchanges with the Metropolis-Hastings algorithm with symmetric transition probabilities, the acceptance probability for removing one particle labeled $i$ (i.e. $Na$ or $Cl$) from compartment $b$ and adding it to $a$, but maintaining a fixed configuration (i.e. an identity exchange) is given by
+For sampling exchanges with the Metropolis-Hastings algorithm with symmetric transition probabilities, the acceptance probability for removing one particle labeled $i$ (i.e. Na or Cl) from compartment $b$ and adding it to $a$, but maintaining a fixed configuration (i.e. an identity exchange) is given by
 
 \begin{align}
-A(n_i^a,n_i^b \rightarrow n_i^a + 1, n_i^b-1|\mathbf{x}_a,\mathbf{x}_b) &= \frac{\pi(n_i^a + 1, n_i^b-1)}{\pi(n_i^a,n_i^b)} \notag\\
+A(n_i^a,n_i^b \rightarrow n_i^a + 1, n_i^b-1;\mathbf{x}_a,\mathbf{x}_b) &= \frac{\pi(n_i^a + 1, n_i^b-1)}{\pi(n_i^a,n_i^b)} \notag\\
 &= \frac{V_a}{V_b} \frac{n^b_i}{n^a_i + 1} \, e^{-\Delta u_i(\mathbf{x}_a) - \Delta u_i(\mathbf{x}_b)}.
 \end{align}
 
-The acceptance probability to exchange two water molecules from $a$ to $b$ is composed of two annhilations from $a$ and two creations in $b$. Because the interaction energy between compartments $a$ and $b$ is zero, $A(n_w^a,n_w^b \rightarrow n_w^a - 2,n_w^b + 2) = A(n_w^a \rightarrow n_w^a - 2)A(n_w^b \rightarrow n_w^b + 2)$. For the first term on the LHS, we have
+The acceptance probability to exchange two water molecules from $a$ to $b$ is composed of two annihilation from $a$ and two creations in $b$. Because the interaction energy between compartments $a$ and $b$ is zero, $A(n_w^a,n_w^b \rightarrow n_w^a - 2,n_w^b + 2) = A(n_w^a \rightarrow n_w^a - 2)A(n_w^b \rightarrow n_w^b + 2)$. For the first term on the LHS, we have
 
 \begin{align}
-A(n_w^a \rightarrow n_w^a - 2|\mathbf{x}_a,\mathbf{x}_b) & = \frac{\pi(n_w^a - 2)}{\pi(n_w^a)} \notag\\
+A(n_w^a \rightarrow n_w^a - 2;\mathbf{x}_a,\mathbf{x}_b) & = \frac{\pi(n_w^a - 2)}{\pi(n_w^a)} \notag\\
 &= \frac{n_w^a(n_w^a - 1)(\Lambda_w)^6 }{(V_a)^2} e^{-\Delta u_w(\mathbf{x}_a)},
 \end{align}
 
 and for the second term of the LHS we have
 \begin{align}
-A(n_w^b \rightarrow n_w^b + 2|\mathbf{x}_a,\mathbf{x}_b) &= \frac{\pi(n_w^b + 2)}{\pi(n_w^b)} \notag\\
+A(n_w^b \rightarrow n_w^b + 2;\mathbf{x}_a,\mathbf{x}_b) &= \frac{\pi(n_w^b + 2)}{\pi(n_w^b)} \notag\\
 &= \frac{(V_b)^2}{(n_w^b +1)(n_w^b +2)(\Lambda_w)^6} \, e^{-\Delta u_w(\mathbf{x}_b)},
 \end{align}
-
 
 so that
 
 \begin{align}
-A(n_w^a,n_w^b \rightarrow n_w^a - 2,n_w^b + 2|\mathbf{x}_a,\mathbf{x}_b) = \left(\frac{V_b}{V_a}\right)^2 \frac{n_w^a(n_w^a - 1)}{(n_w^b +1)(n_w^b +2)} \, e^{- \Delta u_w(\mathbf{x}_a)- \Delta u_w(\mathbf{x}_b)}.
+A(n_w^a,n_w^b \rightarrow n_w^a - 2,n_w^b + 2;\mathbf{x}_a,\mathbf{x}_b) = \left(\frac{V_b}{V_a}\right)^2 \frac{n_w^a(n_w^a - 1)}{(n_w^b +1)(n_w^b +2)} \, e^{- \Delta u_w(\mathbf{x}_a)- \Delta u_w(\mathbf{x}_b)}.
 \end{align}
 
-Therefore, the total acceptance probability for removing one atom of $Na$ and one atom of $Cl$ from compartment $b$, and adding them to compartment $a$, whilst simulaneously removing two water molecules from $a$ and adding them to $b$ is given by
+Therefore, the total acceptance probability for removing one atom of $Na$ and one atom of $Cl$ from compartment $b$, and adding them to compartment $a$, whilst simultaneously removing two water molecules from $a$ and adding them to $b$ is given by
 
 \begin{align}
-A(\mathbf{n}_{initial} \rightarrow \mathbf{n}_{final}|\mathbf{x}_a,\mathbf{x}_b) =  \frac{n_w^a(n_w^a - 1)}{(n_w^b +1)(n_w^b +2)}\frac{n^b_{Na}n^b_{Cl}}{(n^a_{Na} + 1)(n^a_{Cl} + 1)} \, e^{- \Delta u(\mathbf{x}_a)- \Delta u(\mathbf{x}_b)},
+A(\text{add NaCl to} \,\, a;\mathbf{x}_a,\mathbf{x}_b) =  \frac{n_w^a(n_w^a - 1)}{(n_w^b +1)(n_w^b +2)}\frac{n^b_{Na}n^b_{Cl}}{(n^a_{Na} + 1)(n^a_{Cl} + 1)} \, e^{- \Delta u(\mathbf{x}_a)- \Delta u(\mathbf{x}_b)},
 \end{align}
 
-where $U(\mathbf{x}_a)$ and $\Delta U(\mathbf{x}_b)$ are the total changes in potential energy between compartments $a$ and $b$. 
+where $u(\mathbf{x}_a)$ and $\Delta u(\mathbf{x}_b)$ are the total changes in reduced potential energy between compartments $a$ and $b$. Similarly, the acceptance probability to remove NaCl from compartment $a$ and replace with two water molecules from compartment $b$ is given by
 
+\begin{align}
+A(\text{remove NaCl from} \,\, a;\mathbf{x}_a,\mathbf{x}_b) =  \frac{n_{Na}^a n^a_{Cl}}{(n_{Na}^b +1)(n_{Cl}^b+1)}\frac{n^b_{w}(n^b_{w}-1)}{(n^a_{w} + 1)(n^a_{w} + 2)} \, e^{- \Delta u(\mathbf{x}_a)- \Delta u(\mathbf{x}_b)},
+\end{align}
+
+
+\subsection{When the bath is very large and unobserved}
 We consider the case when compartment $b$ (the bulk water and salt bath) becomes macroscopic in size. Collecting all the terms that correspond to $b$ and taking the thermodynamic limits $V_b \rightarrow \infty$, $n_i^b \rightarrow \infty$, and $n^b_i/V_b \rightarrow \rho_i$ $\forall \, i$, we find that
 
 \begin{align}
-A(\mathbf{n}_{initial} \rightarrow \mathbf{n}_{final}|\mathbf{x}_a,\mathbf{x}_b) &\rightarrow \frac{\rho_{Na}^b \rho_{Cl}^b}{(\rho_w^b)^2}\frac{n_w^a(n_w^a - 1)}{(n^a_{Na} + 1)(n^a_{Cl} + 1)}e^{\Delta u(\mathbf{x}_a)- \Delta u(\mathbf{x}_b)} \notag\\
-&=\left(\frac{\rho_{NaCl}^b}{\rho_w^b}\right)^2\frac{n_w^a(n_w^a - 1)}{(n^a_{Na} + 1)(n^a_{Cl} + 1)}e^{\Delta u(\mathbf{x}_a)- \Delta u(\mathbf{x}_b)},
+A(\text{add NaCl to} \,\, a;\mathbf{x}_a,\mathbf{x}_b) &\rightarrow \frac{\rho_{Na}^b \rho_{Cl}^b}{(\rho_w^b)^2}\frac{n_w^a(n_w^a - 1)}{(n^a_{Na} + 1)(n^a_{Cl} + 1)}e^{\Delta u(\mathbf{x}_a)- \Delta u(\mathbf{x}_b)} \notag\\
+&=\left(\frac{\rho_{NaCl}^b}{\rho_w^b}\right)^2\frac{n_w^a(n_w^a - 1)}{(n^a_{Na} + 1)(n^a_{Cl} + 1)}e^{\Delta u(\mathbf{x}_a)- \Delta u(\mathbf{x}_b)}.
 \end{align}
 
-where the second line follows from the stoichiometry of neutral salt. Finally, we require that the macroscobic bath is unobserved, so will use the acceptance probability averaged over all configurations of $x_b$
+where the second line follows from the stoichiometry of neutral salt. Finally, we require that the macroscopic bath is unobserved, so will use the acceptance probability averaged over all configurations of $x_b$
 
 \begin{align}
-A(\mathbf{n}_{initial} \rightarrow \mathbf{n}_{final}|\mathbf{x}_a)  &= \int_{V_b} \pi(\mathbf{x}_b)\, A(\mathbf{n}_{initial} \rightarrow \mathbf{n}_{final}|\mathbf{x}_a,\mathbf{x}_b) \, d\mathbf{x}_b \notag\\
+A(\text{add NaCl to} \,\, a;\mathbf{x}_a)  &= \int_{V_b} \pi(\mathbf{x}_b)\, A(\text{add NaCl to} \,\, a;\mathbf{x}_a,\mathbf{x}_b) \, d\mathbf{x}_b \notag\\
 &= \left(\frac{\rho_{NaCl}^b}{\rho_w^b}\right)^2\frac{n_w^a(n_w^a - 1)}{(n^a_{Na} + 1)(n^a_{Cl} + 1)}\exp(-\Delta u(\mathbf{x}_a))\langle \exp-\Delta u(\mathbf{x}_b)) \rangle_b \notag\\
 &= \left(\frac{\rho_{NaCl}^b}{\rho_w^b}\right)^2\frac{n_w^a(n_w^a - 1)}{(n^a_{Na} + 1)(n^a_{Cl} + 1)} \, e^{-\Delta u(\mathbf{x}_a)}\,\big\langle e^{-\Delta u(\mathbf{x}_b)} \big\rangle_b \notag\\ 
-&= \frac{n_w^a(n_w^a - 1)}{(n^a_{Na} + 1)(n^a_{Cl} + 1)} \, e^{-\Delta u(\mathbf{x}_a)} \, \left[ \left(\frac{\rho_{NaCl}^b}{\rho_w^b}\right)^2 \, e^{-\Delta f} \right],
+&= \frac{n_w^a(n_w^a - 1)}{(n^a_{Na} + 1)(n^a_{Cl} + 1)} \, e^{-\Delta u(\mathbf{x}_a)} \, \left[ \left(\frac{\rho^b_{NaCl}}{\rho_w^b}\right)^2 \, e^{-\Delta f} \right],
 \end{align}
 
-where $\Delta f$ is the dimentionless free energy to decouple NaCl from bulk water at a given concentration minus the free energy to couple two water molecules from bulk water. Note that the terms within the square bracket are completely determined by the thermodynamic bath. At low $NaCl$ concentrations, $\Delta f$ can be evaluated via alchemical free energy calculations although in general, it is a free parameter that requires calibration. In contrast, $\rho_{NaCl}$ and $\rho_{w}$ are set by the user. Note that at low salt concentrations, it should be agree with debouble decoupling free energy calculations.
+where $\Delta f$ is the dimensionless free energy to decouple NaCl from bulk water at a given concentration minus the free energy to couple two water molecules from bulk water. Similarly, we find
 
-The acceptance test above is corresponds to the semi grand canonical ensemble. The identity exchange has no dependance on $V_a$, so volume can fluctuate during the simulation.
+\begin{align}
+A(\text{remove NaCl from} \,\, a;\mathbf{x}_a,\mathbf{x}_b) = \frac{n_{Na}^a n_{Cl}^a}{(n_{w}^a+1)(n_{w}^a+2)}  \left [\left(\frac{\rho_{w}^b}{\rho_{NaCl}^b}\right)^2e^{+\Delta f} \right].
+\end{align}
+
+Note that the terms within the square brackets are completely determined by the thermodynamic bath. At low $NaCl$ concentrations, $\Delta f$ could be evaluated via alchemical free energy calculations although in general, it is a free parameter that requires calibration. In contrast, $\rho_{NaCl}$ and $\rho_{w}$ are set by the user. 
+
+The acceptance test above is corresponds to the semi grand canonical ensemble. The identity exchange has no dependence on $V_a$, so volume can fluctuate during the simulation.
 
 \end{document}
