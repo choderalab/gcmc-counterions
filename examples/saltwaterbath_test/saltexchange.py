@@ -283,13 +283,15 @@ waterbox = WaterBox()
 forcefield = waterbox.forcefield # get ForceField object
 forcefield_options = waterbox.forcefieldOptions
 
-# Bug fixing problem with deletion of ions. Pre inserting ions
-nsalt = 0 # current number of salt pairs
-for i in range(10):
-    (topology,logP_proposal_dummy) = propose_topology(topology, 'add-salt', water_residue, anion_residue, cation_residue)
-    system = forcefield.createSystem(topology, **forcefield_options)
-    nsalt += 1 # current number of salt pairs
-print "Starting with %i molecules" %nsalt
+##### Bug fixing problem with deletion of ions. Pre inserting ions
+#nsalt = 0 # current number of salt pairs
+#for i in range(10):
+#    (topology,logP_proposal_dummy) = propose_topology(topology, 'add-salt', water_residue, anion_residue, cation_residue)
+#    system = forcefield.createSystem(topology, **forcefield_options)
+#    nsalt += 1 # current number of salt pairs
+#print "Starting with %i molecules" %nsalt
+#####
+
 
 # Parameters
 temperature = 300.0 * unit.kelvin
@@ -298,13 +300,13 @@ collision_rate = 5.0 / unit.picoseconds
 timestep = 2.0 * unit.femtoseconds
 chemical_potential = 0.0 * unit.kilocalories_per_mole # chemical potential
 nsteps = 200 # number of timesteps per iteration.
-niterations = 5 # number of iterations
+niterations = 500 # number of iterations
 mctrials = 10 # number of Monte Carlo trials per iteration
-#nsalt = 0 # current number of salt pairs
+nsalt = 0 # current number of salt pairs
 tol = 1e-6 # constraint tolerance
 saltbath_dens = 0.2     # Molarity
 waterbath_dens = 55     # Molarity of bulk water
-freediff = -500 # difference between the hydration free energy of two water molecules and the hydration free energy of NaCl
+freediff = -160 # difference between the hydration free energy of two water molecules and the hydration free energy of NaCl
 
 # Determine number of molecules
 nmolecules = 0
