@@ -240,15 +240,13 @@ def propose_topology(topology, mode, water_residue, anion_residue, cation_residu
         replace_residues = random.choice(water_residues, size=2, replace=False)
         copy_residue(replace_residues[0], cation_residue)
         copy_residue(replace_residues[1], anion_residue)
-        #logP_proposal = np.log( ((1.0/(ncation+1))*(1.0/(nanion+1))) / ((1.0/nwater)*(1.0/(nwater-1))) )
-        logP_proposal = np.log( nwater*(nwater-1)/(nanion+1)/(ncation+1) )
+        logP_proposal = np.log( nwater*1.0*(nwater*1.0-1)/(nanion*1.0+1)/(ncation*1.0+1) )
     if mode == 'delete-salt':
         # Convert cation and anion to water residues.
         replace_residues = [ random.choice(cation_residues), random.choice(anion_residues) ]
         copy_residue(replace_residues[0], water_residue)
         copy_residue(replace_residues[1], water_residue)
-        #logP_proposal = np.log( ((1.0/(nwater+1))*(1.0/(nwater+2))) / ((1.0/ncation)*(1.0/nanion)) )
-        logP_proposal = np.log( (nwater+1)*(nwater+2)/ncation/nanion )
+        logP_proposal = np.log( ncation*nanion*1.0/(nwater*1.0+1)/(nwater*1.0+2) )
     return new_topology, logP_proposal
 
 # Create residue templates.
