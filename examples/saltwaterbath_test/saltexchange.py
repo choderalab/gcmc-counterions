@@ -1,10 +1,9 @@
 #!/usr/bin/env python
 """
-Calibrate the salt chemical potential $\mu_\mathrm{salt}$ as a function of macroscopic salt concentration c.
+Test script which has been adapted from calibrate-sams.py (by J. Chodera) that allows the fluctuation of water and salt concentration.
 
-In this code, a self-adjusted mixture sampling (SAMS) simulation is run in which the number of salt pairs is allowed to dynamically vary.
-The free energy as a function of instantaneous salt concentration is computed.
-
+This code implements a model in which the simulated system swaps water and ions with a macroscopic bath that has a fixed concentration of
+water and salt. It's implemented in a manner that mimics the Gibbs ensemble.
 """
 
 import numpy as np
@@ -123,24 +122,21 @@ class WaterBox(TestSystem):
         self.positions = positions
         self.forcefield = ff
 
-def compute_reduced_potential(system, positions, nmolecules, temperature, pressure, chemical_potential):
+def compute_reduced_potential(system, positions, temperature, pressure):
     """
     Compute the current reduced potential:
 
-      u(x) = \beta [ U(x) + p V(x) + \mu N(x) ]
+      u(x) = \beta [ U(x) + p V(x) ]
 
     \beta  : inverse temperature
     U(x)   : potential energy
     p      : pressure
-    V(x)   : instantaneous box volume
-    \mu    : chemical potential
     N(x)   : number of molecules for chemical potential
 
     Parameters:
     -----------
     system : simtk.openmm.System
     positions : simtk.unit.Quantity
-    nmolecules : number of species corresponding to chemical potential \mu
     temperature : simtk.unit.Quantity compatible with kelvin
     pressure : simtk.unit.Quantity compatible with atmospheres
     chemical_potential : simtk.unit.Quantity compatible with kcal/mol
@@ -159,8 +155,8 @@ def compute_reduced_potential(system, positions, nmolecules, temperature, pressu
 
     del context, integrator
 
-    reduced_potential = beta * (potential + pressure*volume*unit.AVOGADRO_CONSTANT_NA + chemical_potential*nmolecules)
-
+    reduced_potential = beta * (potential + pressure*volume*unit.AVOGADRO_CONSTANT_NA)   # removed the chemical potential from same function in calibrate-sams.py
+                                
     return reduced_potential
 
 def identifyWaterResidues(topology, water_residue_names=('WAT', 'HOH', 'TP4', 'TP5', 'T4E')):
@@ -230,6 +226,7 @@ def propose_topology(topology, mode, water_residue, anion_residue, cation_residu
     nwater = len(water_residues)
     ncation = len(cation_residues)
     nanion = len(anion_residues)
+
     # Copy residue function.
     def copy_residue(dest, src):
         dest.name = src.name
@@ -250,7 +247,6 @@ def propose_topology(topology, mode, water_residue, anion_residue, cation_residu
         copy_residue(replace_residues[0], water_residue)
         copy_residue(replace_residues[1], water_residue)
         logP_proposal = np.log( ncation*nanion*1.0/(nwater*1.0+1)/(nwater*1.0+2) )
-
     return new_topology, logP_proposal
 
 # Create residue templates.
@@ -285,23 +281,45 @@ waterbox = WaterBox()
 forcefield = waterbox.forcefield # get ForceField object
 forcefield_options = waterbox.forcefieldOptions
 
+##### Bug fixing problem with deletion of ions. Pre inserting ions
+#nsalt = 0 # current number of salt pairs
+#for i in range(10):
+#    (topology,logP_proposal_dummy) = propose_topology(topology, 'add-salt', water_residue, anion_residue, cation_residue)
+#    system = forcefield.createSystem(topology, **forcefield_options)
+#    nsalt += 1 # current number of salt pairs
+#print "Starting with %i molecules" %nsalt
+#####
+
+
 # Parameters
 temperature = 300.0 * unit.kelvin
 pressure = 1.0 * unit.atmospheres
 collision_rate = 5.0 / unit.picoseconds
 timestep = 2.0 * unit.femtoseconds
 chemical_potential = 0.0 * unit.kilocalories_per_mole # chemical potential
-nsteps = 5 # number of timesteps per iteration
-niterations = 50 # number of iterations
+nsteps = 200 # number of timesteps per iteration.
+niterations = 500 # number of iterations
 mctrials = 10 # number of Monte Carlo trials per iteration
 nsalt = 0 # current number of salt pairs
 tol = 1e-6 # constraint tolerance
+saltbath_dens = 0.2     # Molarity
+waterbath_dens = 55     # Molarity of bulk water
+freediff = -160 # difference between the hydration free energy of two water molecules and the hydration free energy of NaCl
 
 # Determine number of molecules
 nmolecules = 0
 for residue in topology.residues():
     nmolecules += 1
-print('system originally has %d water molecules' % nmolecules)
+
+simlog = open('./logfile.txt','w+')
+simlog.write('system originally has %d water molecules \n' % nmolecules)
+simlog.write('niterations = %i \n' % niterations)
+simlog.write('mctrials = %i \n' % mctrials)
+simlog.write('nsteps = %i \n' % nsteps)
+simlog.write('freediff = %i \n' % freediff)
+simlog.write('saltbath_dens = %.1f\n' % saltbath_dens )
+simlog.write('waterbath_dens = %.1f\n' % waterbath_dens )
+simlog.write('\n')
 
 # Open PDB file for writing.
 from simtk.openmm.app import PDBFile
@@ -311,7 +329,7 @@ PDBFile.writeModel(topology, positions, file=pdbfile, modelIndex=0)
 
 # Simulate
 for iteration in range(niterations):
-    print('iteration %5d / %5d' % (iteration, niterations))
+    simlog.write('iteration %5d / %5d \n' % (iteration, niterations))
 
     # Create a simulation
     from openmmtools.integrators import VelocityVerletIntegrator
@@ -338,23 +356,29 @@ for iteration in range(niterations):
     for trial in range(mctrials):
         print('  mc trial %5d / %5d' % (trial, mctrials))
         # Compute initial reduced potential.
-        u_initial = compute_reduced_potential(system, positions, nsalt, temperature, pressure, chemical_potential)
-        # Select whether we will add or delete salt pair. Currently missing correction for attempting more salt insertions than based on proportion alone.
+        u_initial = compute_reduced_potential(system, positions, temperature, pressure)
+        # Select whether we will add or delete salt pair.
         if (nsalt==0) or ((nsalt < nmolecules) and (np.random.random() < 0.5)):
             mode = 'add-salt'
             nsalt_proposed = nsalt + 1
+            cost = freediff
+            bathratio = 2*np.log(saltbath_dens/waterbath_dens)
         else:
             mode = 'delete-salt'
             nsalt_proposed = nsalt - 1
+            cost = -freediff
+            bathratio = 2*np.log(waterbath_dens/saltbath_dens)
+
 
         # Propose the modified topology and modify the system parameters in the context.
-        proposed_topology,logP_proposal = propose_topology(topology, mode, water_residue, anion_residue, cation_residue)
+        (proposed_topology,logP_proposal) = propose_topology(topology, mode, water_residue, anion_residue, cation_residue)
         proposed_system = forcefield.createSystem(proposed_topology, **forcefield_options)
         # Compute final reduce potential.
-        u_final = compute_reduced_potential(proposed_system, positions, nsalt_proposed, temperature, pressure, chemical_potential)
+        u_final = compute_reduced_potential(proposed_system, positions, temperature, pressure)
         # Accept or reject.
         accept = False
-        logP_accept = - (u_final - u_initial) + logP_proposal
+        logP_accept = - (u_final - u_initial) + logP_proposal + cost + bathratio
+        #logP_accept = - (u_final - u_initial) + cost
         if (logP_accept > 0) or (np.random.random() < np.exp(logP_accept)):
             accept = True
         if accept:
@@ -365,7 +389,7 @@ for iteration in range(niterations):
             nsalt = nsalt_proposed
         else:
             nrejected += 1
-    print "Number of Na Cl pairs = %i" % nsalt
+    simlog.write('    Number of Na Cl pairs = %i \n' % nsalt)
     # Write PDB frame with current topology and positions.
     PDBFile.writeModel(topology, positions, file=pdbfile, modelIndex=iteration+1)
 
